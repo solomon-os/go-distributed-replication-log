@@ -1,4 +1,4 @@
-module prolog
+module github.com/solomon-os/go-distributed-replication-log/prolog
 
 go 1.26.1
 
