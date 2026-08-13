@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 	"github.com/stretchr/testify/require"
 )
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 	"google.golang.org/protobuf/proto"
 )
 

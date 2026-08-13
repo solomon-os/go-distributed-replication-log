@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -10,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 )
 
 type Log struct {
@@ -99,7 +98,7 @@ func (l *Log) Read(off uint64) (*api.Record, error) {
 		}
 	}
 	if s == nil || s.nextOffset <= off {
-		return nil, fmt.Errorf("offset out of range: %d", off)
+		return nil, api.ErrOffsetOutOfRange{Offset: off}
 	}
 	return s.Read(off)
 }

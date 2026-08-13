@@ -2,9 +2,32 @@ syntax = "proto3";
 
 package log.api.v1;
 
-option go_package = "api/v1";
+option go_package = "github.com/solomon-os/go-distributed-replication-log/log/api/v1;v1";
+
+service LogService {
+  rpc Produce(ProduceRequest) returns (ProduceResponse) {}
+  rpc ProduceStream(stream ProduceRequest) returns (stream ProduceResponse) {}
+  rpc Consume(ConsumeRequest) returns (ConsumeResponse) {}
+  rpc ConsumeStream(ConsumeRequest) returns (stream ConsumeResponse) {}
+}
 
 message Record {
   bytes value = 1;
   uint64 offset = 2;
+}
+
+message ProduceRequest {
+  Record record = 1;
+}
+
+message ProduceResponse {
+  uint64 offset = 1;
+}
+
+message ConsumeRequest {
+  uint64 offset = 1;
+}
+
+message ConsumeResponse {
+  Record record = 1;
 }

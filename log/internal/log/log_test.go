@@ -1,11 +1,12 @@
 package log
 
 import (
+	"errors"
 	"io"
 	"os"
 	"testing"
 
-	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
@@ -49,7 +50,8 @@ func testAppendRead(t *testing.T, log *Log) {
 func testOutOfRangeErr(t *testing.T, log *Log) {
 	read, err := log.Read(1)
 	require.Nil(t, read)
-	require.Error(t, err)
+	apiErr, _ := errors.AsType[api.ErrOffsetOutOfRange](err)
+	require.Equal(t, uint64(1), apiErr.Offset)
 }
 
 func testInitExisting(t *testing.T, log *Log) {
