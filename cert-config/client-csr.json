@@ -1,6 +1,5 @@
 {
-  "CN": "127.0.0.1",
-  "hosts": ["localhost", "::", "127.0.0.1"],
+  "CN": "client",
   "key": { "algo": "rsa", "size": 2048 },
   "names": [
     {

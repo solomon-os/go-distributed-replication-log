@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
+	"github.com/solomon-os/go-distributed-replication-log/log/internal/config"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/log"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
@@ -33,9 +34,28 @@ func setupTest(t *testing.T, fn func(*Config)) (api.LogServiceClient, *Config, f
 	l, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 
-	clientOptions := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	cc, err := grpc.NewClient(l.Addr().String(), clientOptions...)
+	clientTlsConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CAFile:   config.CAFile,
+		CertFile: config.ClientCertFile,
+		KeyFile:  config.ClientKeyFile,
+	})
 	require.NoError(t, err)
+
+	clientCreds := credentials.NewTLS(clientTlsConfig)
+
+	cc, err := grpc.NewClient(l.Addr().String(), grpc.WithTransportCredentials(clientCreds))
+	require.NoError(t, err)
+
+	serverTlsConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile:      config.ServerCertFile,
+		KeyFile:       config.ServerKeyFile,
+		CAFile:        config.CAFile,
+		ServerAddress: l.Addr().String(),
+		Server:        true,
+	})
+	require.NoError(t, err)
+
+	serverCreds := credentials.NewTLS(serverTlsConfig)
 
 	dir, err := os.MkdirTemp("", "server-test")
 	require.NoError(t, err)
@@ -50,7 +70,7 @@ func setupTest(t *testing.T, fn func(*Config)) (api.LogServiceClient, *Config, f
 		fn(cfg)
 	}
 
-	server, err := NewGRPCServer(cfg)
+	server, err := NewGRPCServer(cfg, grpc.Creds(serverCreds))
 	require.NoError(t, err)
 
 	go func() {
