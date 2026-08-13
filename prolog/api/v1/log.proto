@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package prolog.log.v1;
 
-option go_package = "prolog/api/log_v1";
+option go_package = "prolog/api/v1";
 
 message Record {
   bytes value = 1;

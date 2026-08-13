@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -36,7 +36,7 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 
 	indexFile, err := os.OpenFile(
 		path.Join(dir, fmt.Sprintf("%d%s", baseOffset, ".index")),
-		os.O_RDWR|os.O_CREATE|os.O_TRUNC,
+		os.O_RDWR|os.O_CREATE,
 		0644,
 	)
 	if err != nil {

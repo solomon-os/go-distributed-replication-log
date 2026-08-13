@@ -5,12 +5,13 @@ import (
 	"os"
 	"testing"
 
-	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
+	api "github.com/solomon-os/go-distributed-replication-log/prolog/api/v1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSegment(t *testing.T) {
-	dir := os.TempDir()
+	dir, err := os.MkdirTemp("", "segment_test")
+	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
 	want := &api.Record{Value: []byte("hello world")}
