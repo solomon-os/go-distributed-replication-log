@@ -28,5 +28,6 @@ gencert: init
 		cert-config/client-csr.json | cfssljson -bare nobody-client
 	mv *.pem *.csr ${CERTS_DIR} 
 
+DEBUG ?=
 test: 
-	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ go test -v -race ./...
+	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test -v -race ./...

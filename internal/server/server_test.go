@@ -2,20 +2,39 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"testing"
+	"time"
 
 	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/auth"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/config"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/log"
 	"github.com/stretchr/testify/require"
+	"go.opencensus.io/examples/exporter"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
+
+var debug bool
+
+func TestMain(m *testing.M) {
+	debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
+	if debug {
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			panic(err)
+		}
+		zap.ReplaceGlobals(logger)
+	}
+	os.Exit(m.Run())
+}
 
 func TestServer(t *testing.T) {
 	for scenario, fn := range map[string]func(t *testing.T, client api.LogServiceClient, _ api.LogServiceClient, config *Config){
@@ -66,6 +85,31 @@ func setupTest(
 		fn(cfg)
 	}
 
+	var telemetryExporter *exporter.LogExporter
+	if debug {
+		dir, err := os.MkdirTemp("", "distributed-services")
+		require.NoError(t, err)
+
+		metricsLogFile, err := os.CreateTemp(dir, "metrics-*.log")
+		require.NoError(t, err)
+		t.Logf("metrics log file: %s", metricsLogFile.Name())
+
+		tracesLogFile, err := os.CreateTemp(dir, "traces-*.log")
+		require.NoError(t, err)
+		t.Logf("traces log file: %s", tracesLogFile.Name())
+
+		telemetryExporter, err = exporter.NewLogExporter(
+			exporter.Options{
+				MetricsLogFile:    metricsLogFile.Name(),
+				TracesLogFile:     tracesLogFile.Name(),
+				ReportingInterval: time.Second,
+			},
+		)
+		require.NoError(t, err)
+		err = telemetryExporter.Start()
+		require.NoError(t, err)
+	}
+
 	server, err := NewGRPCServer(cfg, grpc.Creds(serverCreds))
 	require.NoError(t, err)
 
@@ -101,6 +145,12 @@ func setupTest(
 		nobodyConn.Close()
 		l.Close()
 		clog.Remove()
+		if telemetryExporter != nil {
+			fmt.Println("tear down called")
+			time.Sleep(1500 * time.Millisecond)
+			telemetryExporter.Stop()
+			telemetryExporter.Close()
+		}
 	}
 }
 
