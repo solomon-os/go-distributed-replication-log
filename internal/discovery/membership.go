@@ -126,5 +126,3 @@ func (m *Membership) logError(err error, msg string, member serf.Member) {
 		zap.String("rpc_addr", member.Tags["rpc_addr"]),
 	)
 }
-
-
