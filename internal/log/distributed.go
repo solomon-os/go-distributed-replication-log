@@ -389,6 +389,7 @@ func (s *StreamLayer) Dial(addr raft.ServerAddress, timeout time.Duration) (net.
 		return nil, err
 	}
 
+	// identify to mux this is a raft rpc
 	if _, err = conn.Write([]byte{byte(RaftRPC)}); err != nil {
 		return nil, err
 	}
