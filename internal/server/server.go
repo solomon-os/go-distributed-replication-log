@@ -26,8 +26,9 @@ import (
 )
 
 type Config struct {
-	CommitLog  CommitLog
-	Authorizer Authorizer
+	CommitLog   CommitLog
+	Authorizer  Authorizer
+	GetServerer GetServerer
 }
 
 const (
@@ -173,6 +174,21 @@ func (s *grpcServer) ConsumeStream(
 			req.Offset++
 		}
 	}
+}
+
+type GetServerer interface {
+	GetServers() ([]*api.Server, error)
+}
+
+func (s *grpcServer) GetServers(
+	context.Context,
+	*api.GetServersRequest,
+) (*api.GetServersResponse, error) {
+	servers, err := s.GetServerer.GetServers()
+	if err != nil {
+		return nil, err
+	}
+	return &api.GetServersResponse{Servers: servers}, nil
 }
 
 type CommitLog interface {

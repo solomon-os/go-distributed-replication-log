@@ -265,6 +265,146 @@ func (x *ConsumeResponse) GetRecord() *Record {
 	return nil
 }
 
+type GetServersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetServersRequest) Reset() {
+	*x = GetServersRequest{}
+	mi := &file_api_v1_log_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetServersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetServersRequest) ProtoMessage() {}
+
+func (x *GetServersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_log_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetServersRequest.ProtoReflect.Descriptor instead.
+func (*GetServersRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_log_proto_rawDescGZIP(), []int{5}
+}
+
+type GetServersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Servers       []*Server              `protobuf:"bytes,1,rep,name=servers,proto3" json:"servers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetServersResponse) Reset() {
+	*x = GetServersResponse{}
+	mi := &file_api_v1_log_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetServersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetServersResponse) ProtoMessage() {}
+
+func (x *GetServersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_log_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetServersResponse.ProtoReflect.Descriptor instead.
+func (*GetServersResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_log_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetServersResponse) GetServers() []*Server {
+	if x != nil {
+		return x.Servers
+	}
+	return nil
+}
+
+type Server struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RpcAddr       string                 `protobuf:"bytes,2,opt,name=rpc_addr,json=rpcAddr,proto3" json:"rpc_addr,omitempty"`
+	IsLeader      bool                   `protobuf:"varint,3,opt,name=is_leader,json=isLeader,proto3" json:"is_leader,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Server) Reset() {
+	*x = Server{}
+	mi := &file_api_v1_log_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Server) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Server) ProtoMessage() {}
+
+func (x *Server) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_log_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Server.ProtoReflect.Descriptor instead.
+func (*Server) Descriptor() ([]byte, []int) {
+	return file_api_v1_log_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Server) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Server) GetRpcAddr() string {
+	if x != nil {
+		return x.RpcAddr
+	}
+	return ""
+}
+
+func (x *Server) GetIsLeader() bool {
+	if x != nil {
+		return x.IsLeader
+	}
+	return false
+}
+
 var File_api_v1_log_proto protoreflect.FileDescriptor
 
 const file_api_v1_log_proto_rawDesc = "" +
@@ -283,13 +423,22 @@ const file_api_v1_log_proto_rawDesc = "" +
 	"\x0eConsumeRequest\x12\x16\n" +
 	"\x06offset\x18\x01 \x01(\x04R\x06offset\"=\n" +
 	"\x0fConsumeResponse\x12*\n" +
-	"\x06record\x18\x01 \x01(\v2\x12.log.api.v1.RecordR\x06record2\xb6\x02\n" +
+	"\x06record\x18\x01 \x01(\v2\x12.log.api.v1.RecordR\x06record\"\x13\n" +
+	"\x11GetServersRequest\"B\n" +
+	"\x12GetServersResponse\x12,\n" +
+	"\aservers\x18\x01 \x03(\v2\x12.log.api.v1.ServerR\aservers\"P\n" +
+	"\x06Server\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\brpc_addr\x18\x02 \x01(\tR\arpcAddr\x12\x1b\n" +
+	"\tis_leader\x18\x03 \x01(\bR\bisLeader2\x85\x03\n" +
 	"\n" +
 	"LogService\x12D\n" +
 	"\aProduce\x12\x1a.log.api.v1.ProduceRequest\x1a\x1b.log.api.v1.ProduceResponse\"\x00\x12N\n" +
 	"\rProduceStream\x12\x1a.log.api.v1.ProduceRequest\x1a\x1b.log.api.v1.ProduceResponse\"\x00(\x010\x01\x12D\n" +
 	"\aConsume\x12\x1a.log.api.v1.ConsumeRequest\x1a\x1b.log.api.v1.ConsumeResponse\"\x00\x12L\n" +
-	"\rConsumeStream\x12\x1a.log.api.v1.ConsumeRequest\x1a\x1b.log.api.v1.ConsumeResponse\"\x000\x01BDZBgithub.com/solomon-os/go-distributed-replication-log/log/api/v1;v1b\x06proto3"
+	"\rConsumeStream\x12\x1a.log.api.v1.ConsumeRequest\x1a\x1b.log.api.v1.ConsumeResponse\"\x000\x01\x12M\n" +
+	"\n" +
+	"GetServers\x12\x1d.log.api.v1.GetServersRequest\x1a\x1e.log.api.v1.GetServersResponse\"\x00BDZBgithub.com/solomon-os/go-distributed-replication-log/log/api/v1;v1b\x06proto3"
 
 var (
 	file_api_v1_log_proto_rawDescOnce sync.Once
@@ -303,30 +452,36 @@ func file_api_v1_log_proto_rawDescGZIP() []byte {
 	return file_api_v1_log_proto_rawDescData
 }
 
-var file_api_v1_log_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_api_v1_log_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_api_v1_log_proto_goTypes = []any{
-	(*Record)(nil),          // 0: log.api.v1.Record
-	(*ProduceRequest)(nil),  // 1: log.api.v1.ProduceRequest
-	(*ProduceResponse)(nil), // 2: log.api.v1.ProduceResponse
-	(*ConsumeRequest)(nil),  // 3: log.api.v1.ConsumeRequest
-	(*ConsumeResponse)(nil), // 4: log.api.v1.ConsumeResponse
+	(*Record)(nil),             // 0: log.api.v1.Record
+	(*ProduceRequest)(nil),     // 1: log.api.v1.ProduceRequest
+	(*ProduceResponse)(nil),    // 2: log.api.v1.ProduceResponse
+	(*ConsumeRequest)(nil),     // 3: log.api.v1.ConsumeRequest
+	(*ConsumeResponse)(nil),    // 4: log.api.v1.ConsumeResponse
+	(*GetServersRequest)(nil),  // 5: log.api.v1.GetServersRequest
+	(*GetServersResponse)(nil), // 6: log.api.v1.GetServersResponse
+	(*Server)(nil),             // 7: log.api.v1.Server
 }
 var file_api_v1_log_proto_depIdxs = []int32{
 	0, // 0: log.api.v1.ProduceRequest.record:type_name -> log.api.v1.Record
 	0, // 1: log.api.v1.ConsumeResponse.record:type_name -> log.api.v1.Record
-	1, // 2: log.api.v1.LogService.Produce:input_type -> log.api.v1.ProduceRequest
-	1, // 3: log.api.v1.LogService.ProduceStream:input_type -> log.api.v1.ProduceRequest
-	3, // 4: log.api.v1.LogService.Consume:input_type -> log.api.v1.ConsumeRequest
-	3, // 5: log.api.v1.LogService.ConsumeStream:input_type -> log.api.v1.ConsumeRequest
-	2, // 6: log.api.v1.LogService.Produce:output_type -> log.api.v1.ProduceResponse
-	2, // 7: log.api.v1.LogService.ProduceStream:output_type -> log.api.v1.ProduceResponse
-	4, // 8: log.api.v1.LogService.Consume:output_type -> log.api.v1.ConsumeResponse
-	4, // 9: log.api.v1.LogService.ConsumeStream:output_type -> log.api.v1.ConsumeResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	7, // 2: log.api.v1.GetServersResponse.servers:type_name -> log.api.v1.Server
+	1, // 3: log.api.v1.LogService.Produce:input_type -> log.api.v1.ProduceRequest
+	1, // 4: log.api.v1.LogService.ProduceStream:input_type -> log.api.v1.ProduceRequest
+	3, // 5: log.api.v1.LogService.Consume:input_type -> log.api.v1.ConsumeRequest
+	3, // 6: log.api.v1.LogService.ConsumeStream:input_type -> log.api.v1.ConsumeRequest
+	5, // 7: log.api.v1.LogService.GetServers:input_type -> log.api.v1.GetServersRequest
+	2, // 8: log.api.v1.LogService.Produce:output_type -> log.api.v1.ProduceResponse
+	2, // 9: log.api.v1.LogService.ProduceStream:output_type -> log.api.v1.ProduceResponse
+	4, // 10: log.api.v1.LogService.Consume:output_type -> log.api.v1.ConsumeResponse
+	4, // 11: log.api.v1.LogService.ConsumeStream:output_type -> log.api.v1.ConsumeResponse
+	6, // 12: log.api.v1.LogService.GetServers:output_type -> log.api.v1.GetServersResponse
+	8, // [8:13] is the sub-list for method output_type
+	3, // [3:8] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_log_proto_init() }
@@ -340,7 +495,7 @@ func file_api_v1_log_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_log_proto_rawDesc), len(file_api_v1_log_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
