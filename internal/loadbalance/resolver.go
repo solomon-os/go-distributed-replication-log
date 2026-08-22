@@ -17,7 +17,7 @@ type Resolver struct {
 	mu            sync.Mutex
 	clientConn    resolver.ClientConn
 	resolverConn  *grpc.ClientConn
-	serviceConfig serviceconfig.ParseResult
+	serviceConfig *serviceconfig.ParseResult
 	logger        *zap.Logger
 }
 
@@ -36,12 +36,12 @@ func (r *Resolver) Build(
 		dialOpts = append(dialOpts, grpc.WithTransportCredentials(opts.DialCreds))
 	}
 
-	r.serviceConfig = *r.clientConn.ParseServiceConfig(
+	r.serviceConfig = r.clientConn.ParseServiceConfig(
 		fmt.Sprintf(`{"loadBalancingConfig":[{"%s":{}}]}`, Name),
 	)
 
 	var err error
-	r.resolverConn, err = grpc.NewClient(target.Endpoint(), dialOpts...)
+	r.resolverConn, err = grpc.NewClient(target.URL.Host, dialOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (r *Resolver) ResolveNow(resolver.ResolveNowOptions) {
 
 	r.clientConn.UpdateState(resolver.State{
 		Addresses:     addrs,
-		ServiceConfig: &r.serviceConfig,
+		ServiceConfig: r.serviceConfig,
 	})
 }
 

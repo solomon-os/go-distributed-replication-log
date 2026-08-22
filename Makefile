@@ -29,5 +29,10 @@ gencert: init
 	mv *.pem *.csr ${CERTS_DIR} 
 
 DEBUG ?=
+test-all: 
+	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test ./... 
+
+RUN ?=
 test: 
-	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test -v ./...
+	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test -run '$(RUN)' -timeout 5s ./... 
+
