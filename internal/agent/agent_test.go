@@ -11,6 +11,7 @@ import (
 	api "github.com/solomon-os/go-distributed-replication-log/log/api/v1"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/agent"
 	"github.com/solomon-os/go-distributed-replication-log/log/internal/config"
+	"github.com/solomon-os/go-distributed-replication-log/log/internal/loadbalance"
 	"github.com/stretchr/testify/require"
 	"github.com/travisjeffery/go-dynaport"
 	"google.golang.org/grpc"
@@ -87,14 +88,15 @@ func TestAgent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	// wait until replication has finished
+	time.Sleep(3 * time.Second)
+
 	consumeReponse, err := leaderClient.Consume(
 		context.Background(),
 		&api.ConsumeRequest{Offset: produceResponse.Offset},
 	)
 	require.NoError(t, err)
 	require.Equal(t, consumeReponse.Record.Value, []byte("foo"))
-
-	time.Sleep(3 * time.Second)
 
 	followerClient := client(t, agents[1], peerTLSConfig)
 	consumeReponse, err = followerClient.Consume(
@@ -121,7 +123,7 @@ func client(t *testing.T, agent *agent.Agent, tlsConfig *tls.Config) api.LogServ
 	rpcAddr, err := agent.Config.RPCAddr()
 	require.NoError(t, err)
 
-	conn, err := grpc.NewClient(rpcAddr, opts...)
+	conn, err := grpc.NewClient(fmt.Sprintf("%s://%s", loadbalance.Name, rpcAddr), opts...)
 	require.NoError(t, err)
 
 	return api.NewLogServiceClient(conn)
