@@ -27,8 +27,8 @@ func newIndex(f *os.File, c Config) (*index, error) {
 	if err != nil {
 		return nil, err
 	}
+	preSize := uint64(fi.Size())
 
-	idx.size = uint64(fi.Size())
 	if err = os.Truncate(
 		f.Name(), int64(c.Segment.MaxIndexBytes),
 	); err != nil {
@@ -43,7 +43,36 @@ func newIndex(f *os.File, c Config) (*index, error) {
 		return nil, err
 	}
 
+	// A file that was already at capacity before this truncate can't be
+	// trusted at face value: it may be the padded remainder of an index
+	// that was never cleanly closed (e.g. the process was killed), in
+	// which case the on-disk size no longer reflects how many entries
+	// were actually written. Recover the real size by walking entries
+	// instead of trusting the raw file size in that case.
+	if preSize < c.Segment.MaxIndexBytes {
+		idx.size = preSize
+	} else {
+		idx.size = idx.recoverSize()
+	}
+
 	return idx, nil
+}
+
+// recoverSize walks the memory-mapped entries from the start and returns
+// the size in bytes of the longest valid prefix, where "valid" means each
+// entry's relative offset is exactly one more than the last. Entries past
+// an unclean shutdown are indistinguishable from zero-valued padding, so
+// this stops at the first entry that breaks the expected sequence.
+func (i *index) recoverSize() uint64 {
+	var size uint64
+	for expected := uint32(0); size+entWidth <= uint64(len(i.mmap)); expected++ {
+		off := enc.Uint32(i.mmap[size : size+offWidth])
+		if off != expected {
+			break
+		}
+		size += entWidth
+	}
+	return size
 }
 
 func (i *index) Name() string {

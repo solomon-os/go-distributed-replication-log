@@ -47,7 +47,21 @@ type Config struct {
 	ACLPolicyFile   string
 }
 
+// RPCAddr resolves BindAddr to an IP and returns the RPC host:port. Use this
+// for direct local connections (e.g. tests).
 func (c Config) RPCAddr() (string, error) {
+	addr, err := net.ResolveTCPAddr("tcp", c.BindAddr)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%d", addr.IP.String(), c.RPCPort), nil
+}
+
+// RPCAdvertiseAddr returns the stable address other nodes should use to reach
+// this node's RPC/Raft listener. It keeps the host from BindAddr (typically a
+// DNS name in Kubernetes) instead of resolving it to an IP so the address
+// remains valid across pod restarts.
+func (c Config) RPCAdvertiseAddr() (string, error) {
 	host, _, err := net.SplitHostPort(c.BindAddr)
 	if err != nil {
 		return "", err
@@ -73,14 +87,26 @@ func New(config Config) (*Agent, error) {
 		}
 	}
 	go a.serve()
+
+	if a.Config.Bootstrap {
+		if err := a.log.WaitForLeader(3 * time.Second); err != nil {
+			if err = a.Shutdown(); err != nil {
+				return nil, err
+			}
+			return nil, err
+		}
+	}
 	return a, nil
 }
 
 func (a *Agent) setupMux() error {
-	rpcAddr := fmt.Sprintf(
-		":%d",
-		a.Config.RPCPort,
-	)
+	// Listen on all interfaces rather than a single resolved IP: raft and
+	// Serf get their self-address from Config.RPCAdvertiseAddr()/BindAddr
+	// (a stable host, e.g. a k8s DNS name), not from this listener's bound
+	// address, so nothing depends on which interface it's bound to. Binding
+	// to a single non-loopback IP instead of all interfaces would make the
+	// RPC/Raft port unreachable via localhost, breaking in-pod health probes.
+	rpcAddr := fmt.Sprintf(":%d", a.Config.RPCPort)
 	ln, err := net.Listen("tcp", rpcAddr)
 	if err != nil {
 		return err
@@ -108,25 +134,26 @@ func (a *Agent) setupLog() error {
 	})
 
 	logConfig := log.Config{}
+	advertiseAddr, err := a.Config.RPCAdvertiseAddr()
+	if err != nil {
+		return err
+	}
 	logConfig.Raft.StreamLayer = log.NewStreamLayer(
 		raftLn,
 		a.Config.ServerTLSConfig,
 		a.Config.PeerTLSConfig,
+		advertiseAddr,
 	)
+	logConfig.Raft.BindAddr = advertiseAddr
 	logConfig.Raft.LocalID = raft.ServerID(a.Config.NodeName)
 	logConfig.Raft.Bootstrap = a.Config.Bootstrap
 
-	var err error
 	a.log, err = log.NewDistributedLog(a.Config.DataDir, logConfig)
 	if err != nil {
 		return err
 	}
 
-	if a.Config.Bootstrap {
-		err = a.log.WaitForLeader(3 * time.Second)
-	}
-
-	return err
+	return nil
 }
 
 func (a *Agent) setupServer() error {
@@ -161,7 +188,7 @@ func (a *Agent) setupServer() error {
 }
 
 func (a *Agent) setupMembership() error {
-	rpcAddr, err := a.Config.RPCAddr()
+	rpcAddr, err := a.Config.RPCAdvertiseAddr()
 	if err != nil {
 		return err
 	}

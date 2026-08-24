@@ -76,15 +76,18 @@ func TestStoreClose(t *testing.T) {
 	_, _, err = s.Append(write)
 	require.NoError(t, err)
 
-	f, beforeSize, err := openFile(f.Name())
+	// Append flushes eagerly so an appended record survives the process
+	// being killed before Close runs, so the write is already on disk.
+	_, beforeSize, err := openFile(f.Name())
 	require.NoError(t, err)
+	require.True(t, beforeSize > 0)
 
 	err = s.Close()
 	require.NoError(t, err)
 
 	_, afterSize, err := openFile(f.Name())
 	require.NoError(t, err)
-	require.True(t, afterSize > beforeSize)
+	require.Equal(t, beforeSize, afterSize)
 }
 
 func openFile(name string) (file *os.File, size int64, err error) {

@@ -109,7 +109,7 @@ func (l *DistributedLog) setupRaft(dir string) error {
 			Servers: []raft.Server{
 				{
 					ID:      config.LocalID,
-					Address: transport.LocalAddr(),
+					Address: raft.ServerAddress(l.config.Raft.BindAddr),
 				},
 			},
 		}
@@ -366,11 +366,12 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 	for _, record := range records {
-		if _, err := l.Append(&api.Record{
+		_, err := l.Append(&api.Record{
 			Value: record.Data,
 			Term:  record.Term,
 			Type:  uint32(record.Type),
-		}); err != nil {
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -387,13 +388,19 @@ type StreamLayer struct {
 	ln              net.Listener
 	serverTLSConfig *tls.Config
 	peerTLSConfig   *tls.Config
+	advertiseAddr   string
 }
 
-func NewStreamLayer(ln net.Listener, serverTLSConfig, peerTLSConfig *tls.Config) *StreamLayer {
+func NewStreamLayer(
+	ln net.Listener,
+	serverTLSConfig, peerTLSConfig *tls.Config,
+	advertiseAddr string,
+) *StreamLayer {
 	return &StreamLayer{
 		ln:              ln,
 		serverTLSConfig: serverTLSConfig,
 		peerTLSConfig:   peerTLSConfig,
+		advertiseAddr:   advertiseAddr,
 	}
 }
 
@@ -445,5 +452,15 @@ func (s *StreamLayer) Close() error {
 }
 
 func (s *StreamLayer) Addr() net.Addr {
+	if s.advertiseAddr != "" {
+		return streamAddr{advertiseAddr: s.advertiseAddr}
+	}
 	return s.ln.Addr()
 }
+
+type streamAddr struct {
+	advertiseAddr string
+}
+
+func (a streamAddr) Network() string { return "tcp" }
+func (a streamAddr) String() string  { return a.advertiseAddr }

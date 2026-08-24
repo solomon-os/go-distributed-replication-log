@@ -45,6 +45,16 @@ func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 
 	w += lenWidth
 	s.size += uint64(w)
+
+	// Flush immediately so a record is visible on disk as soon as Append
+	// returns success. Without this, a killed process (e.g. Kubernetes
+	// restarting a crash-looping container) can lose buffered writes even
+	// though the index already recorded their position, leaving reads for
+	// those offsets permanently failing with EOF.
+	if err := s.buf.Flush(); err != nil {
+		return 0, 0, err
+	}
+
 	return uint64(w), pos, nil
 }
 

@@ -30,9 +30,14 @@ gencert: init
 
 DEBUG ?=
 test-all: 
-	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test ./... 
+	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test -timeout 30s ./... 
 
 RUN ?=
 test: 
 	CERTS_DIR=${CERTS_DIR} ACL_DIR=${PWD}/ DEBUG=${DEBUG} go test -run '$(RUN)' -timeout 5s ./... 
 
+
+TAG ?= 0.0.1
+
+build-docker:
+	docker build -t github.com/solomon-os/raft-distributed-log:$(TAG) .
