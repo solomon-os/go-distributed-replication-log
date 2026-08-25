@@ -5,6 +5,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
 {{- include "proglog.labels" . | nindent 4 }}
+  {{- if .Values.service.lb }}
+  annotations:
+    service-per-pod-label: "statefulset.kubernetes.io/pod-name"
+    service-per-pod-ports: "{{ .Values.rpcPort }}:{{ .Values.rpcPort }}"
+  {{- end }}
 spec:
   selector:
     matchLabels:
