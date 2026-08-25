@@ -11,7 +11,7 @@ A client can add a record to the log, read a record using its offset, stream rec
 - Automatic creation of a new segment when the current one becomes full.
 - A gRPC API for producing and consuming records.
 - Streaming RPCs for sending or reading several records.
-- Raft consensus for choosing a leader and replicating data between nodes.
+- Integrated HashiCorp Raft for consensus, leader election, and data replication between nodes.
 - Automatic node discovery and membership management with Serf.
 - A custom gRPC load balancer. Write requests go to the leader, while read requests are shared between followers.
 - TLS encryption and client certificate authentication.
@@ -31,7 +31,7 @@ I used memory mapping for each segment's index file. Memory mapping lets the pro
 
 The index stores each record's relative offset and its exact position in the data file. This means the service can find a record directly instead of reading through the whole log. Index changes are synced to disk when the index closes, and the program can recover the valid index entries after an unclean shutdown.
 
-When a client writes a record, the request is sent to the Raft leader. Raft copies the change to the other nodes before it is committed. Serf lets nodes discover when another node joins or leaves, and the cluster updates its Raft membership.
+When a client writes a record, the request is sent to the cluster leader. The integrated HashiCorp Raft library handles consensus and copies the change to the other nodes before it is committed. Serf lets nodes discover when another node joins or leaves, and the cluster updates its Raft membership.
 
 The gRPC server and Raft traffic share one TCP port. The service separates the traffic internally and can protect both client and node connections with TLS.
 
@@ -51,7 +51,7 @@ The API definition is in `api/v1/log.proto`.
 api/v1/              Protocol Buffer and generated gRPC code
 cmd/proglog/         Main server command
 cmd/getservers/      Small client that lists cluster servers
-internal/log/        Storage, segments, indexes, Raft, and replication
+internal/log/        Storage, segments, indexes, and HashiCorp Raft integration
 internal/server/     gRPC server and middleware
 internal/agent/      Connects the server, log, Raft, and discovery parts
 internal/discovery/  Serf cluster membership

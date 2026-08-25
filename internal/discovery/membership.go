@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"net"
+	"time"
 
 	"github.com/hashicorp/raft"
 	"github.com/hashicorp/serf/serf"
@@ -91,12 +92,24 @@ func (m *Membership) eventHandler() {
 }
 
 func (m *Membership) handleJoin(member serf.Member) {
-	if err := m.handler.Join(
-		member.Name,
-		member.Tags["rpc_addr"],
-	); err != nil {
-		m.logError(err, "failed to join", member)
-	}
+	go func() {
+		var err error
+		for attempt := range 5 {
+			err = m.handler.Join(member.Name, member.Tags["rpc_addr"])
+			if err == nil || err != raft.ErrNotLeader {
+				break
+			}
+			// The node handling this attempt isn't the leader right now,
+			// e.g. because a concurrent join elsewhere caused a leadership
+			// blip. Retry until a leader stabilizes rather than dropping
+			// this member permanently, since this is a one-shot event with
+			// no other trigger to retry the join later.
+			time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+		}
+		if err != nil {
+			m.logError(err, "failed to join", member)
+		}
+	}()
 }
 
 func (m *Membership) handleLeave(member serf.Member) {
