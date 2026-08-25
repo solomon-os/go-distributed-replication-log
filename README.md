@@ -7,7 +7,7 @@ A client can add a record to the log, read a record using its offset, stream rec
 ## What I implemented
 
 - A persistent commit log that stores records on disk.
-- Log segments and indexes for finding records quickly.
+- Log segments and a memory-mapped index for finding records quickly.
 - Automatic creation of a new segment when the current one becomes full.
 - A gRPC API for producing and consuming records.
 - Streaming RPCs for sending or reading several records.
@@ -24,6 +24,12 @@ A client can add a record to the log, read a record using its offset, stream rec
 ## How it works
 
 Each record is saved with an offset. The offset is its position in the log and can be used to read the record later.
+
+### Memory mapping
+
+I used memory mapping for each segment's index file. Memory mapping lets the program work with a file as if it were part of memory, while the operating system handles moving the data between memory and disk.
+
+The index stores each record's relative offset and its exact position in the data file. This means the service can find a record directly instead of reading through the whole log. Index changes are synced to disk when the index closes, and the program can recover the valid index entries after an unclean shutdown.
 
 When a client writes a record, the request is sent to the Raft leader. Raft copies the change to the other nodes before it is committed. Serf lets nodes discover when another node joins or leaves, and the cluster updates its Raft membership.
 
